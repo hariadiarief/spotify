@@ -17,6 +17,7 @@ const Main = () => {
     const { defaultAlgorithm, darkAlgorithm } = theme
 
     return (
+      <div className="max-w-md mx-auto  min-h-screen  md:shadow-xl">
         <ConfigProvider
             theme={{
                 algorithm: isDark ? darkAlgorithm : defaultAlgorithm,
@@ -24,6 +25,7 @@ const Main = () => {
         >
             <RouterProvider router={publicRoutes} />
         </ConfigProvider>
+        </div>
     )
 }
 

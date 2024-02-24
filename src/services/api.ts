@@ -3,7 +3,7 @@ import { toast } from 'react-toastify'
 import { enableMockAdapter } from './mockAdapter'
 
 export const axiosInstance = axios.create({
-    baseURL: 'https://pokeapi.co/api/v2',
+    baseURL: 'https://itunes.apple.com',
 })
 
 enableMockAdapter({ isEnabled: false })

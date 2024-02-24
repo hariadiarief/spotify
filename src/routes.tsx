@@ -6,16 +6,14 @@ import {
 } from 'react-router-dom'
 
 // LAYOUT
-const Layout = lazy(async () => await import('@/components/layout'))
 
 // PAGE
 const Home = lazy(async () => await import('@/pages/home'))
-const About = lazy(async () => await import('@/pages/about'))
-const Example = lazy(async () => await import('@/pages/example'))
+const Results = lazy(async () => await import('@/pages/result'))
 
 export const publicRoutes = createBrowserRouter(
     createRoutesFromElements(
-        <Route path='/' element={<Layout />}>
+        <Route path='/'>
             <Route
                 index
                 element={
@@ -25,21 +23,13 @@ export const publicRoutes = createBrowserRouter(
                 }
             />
             <Route
-                path='about'
+                path='results'
                 element={
                     <Suspense fallback={<></>}>
-                        <About />
+                        <Results />
                     </Suspense>
                 }
-            />
-            <Route
-                path='example'
-                element={
-                    <Suspense fallback={<></>}>
-                        <Example />
-                    </Suspense>
-                }
-            />
+            /> 
         </Route>
     )
 )
