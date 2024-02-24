@@ -1,4 +1,4 @@
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -14,10 +14,13 @@ export default function Home() {
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-purple-900 to-purple-500 min-h-screen">
+    <div className="flex justify-center items-center flex-col bg-gradient-to-br from-purple-900 to-purple-500 min-h-screen">
+      <div className="grow items-center flex">
+        <img src="/images/logo.png" alt="" />
+      </div>
       <form
         onSubmit={handleSearch}
-        className="absolute bottom-[26px] flex flex-col justify-center items-center w-full"
+        className=" mb-[26px]  flex flex-col justify-center items-center w-full"
       >
         <input
           onChange={(e) => setKeyword(e.target.value)}

@@ -17,7 +17,7 @@ const Main = () => {
     const { defaultAlgorithm, darkAlgorithm } = theme
 
     return (
-      <div className="max-w-md mx-auto  min-h-screen  md:shadow-xl">
+      <div className="w-full max-w-[768px] mx-auto  min-h-screen  md:shadow-xl">
         <ConfigProvider
             theme={{
                 algorithm: isDark ? darkAlgorithm : defaultAlgorithm,

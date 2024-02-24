@@ -1,15 +1,18 @@
+import IconClose from "@/components/icons/IconClose";
+import IconPause from "@/components/icons/IconPause";
+import IconPlay from "@/components/icons/IconPlay";
+import IconSearch from "@/components/icons/IconSearch";
+import IconMenu from "@/components/icons/Menu";
 import { axiosInstance } from "@/services/api";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import ReactModal from "react-modal";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
-interface IpokemonList {
+interface ITrackList {
   isLoading: boolean;
-
-  isLoadingMore: boolean;
   isHasMore: string | null;
-  offset: number;
   limit: number;
-
   items: Itrack[];
 }
 
@@ -50,39 +53,17 @@ const Player = ({ item }: { item: Itrack }) => {
         alt=""
       />
       {isPlaying === item.trackId ? (
-        <svg
+        <IconPause
+          width={42}
+          height={42}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M4 6h16M4 12h16m-7 6h7"
-          />
-        </svg>
+        />
       ) : (
-        <svg
+        <IconPlay
+          width={42}
+          height={42}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M14.804 12.204l-4.804 3.152V8.052l4.804 3.152z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
+        />
       )}
     </div>
   );
@@ -90,82 +71,139 @@ const Player = ({ item }: { item: Itrack }) => {
 
 const Results = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const keywordParams = searchParams.get("keyword") || "";
 
-  const [result, setResult] = useState<IpokemonList>({
-    isLoading: true,
-    isLoadingMore: false,
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [keyword, setKeyword] = useState<string>("");
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!keyword) toast.error("Input Keyword");
+    else navigate(`/results?keyword=${encodeURIComponent(keyword)}`);
+
+    setIsModalOpen(false);
+  };
+
+  const [result, setResult] = useState<ITrackList>({
+    isLoading: false,
     isHasMore: null,
-    offset: 0,
     limit: 10,
     items: [],
   });
 
-  const fethSearch = () => {
-    if (result.isLoading || result.isLoadingMore) {
+  const fethSearch = ({ loadMore }: { loadMore?: boolean }): void => {
+    console.log(keywordParams && !result.isLoading);
+
+    if (keywordParams) {
       axiosInstance
-        .get(`/search?term=iwan%20fals&entity=song&limit=10`)
+        .get(
+          `/search?term=${encodeURIComponent(keywordParams)}&entity=song&limit=${loadMore ? result.limit + 10 : result.limit}`
+        )
         .then((response) => {
           setResult({
             ...result,
-            isHasMore: response.data.next,
-            isLoadingMore: false,
             isLoading: false,
-            items: result.items.concat(response.data.results),
-            offset: result.offset + result.limit,
+            items: response.data.results,
+            limit: response.data.resultCount,
           });
         })
         .catch((err) => {
           console.log(err);
-        });
+        })
+        .finally(() => setIsLoadingMore(false));
     }
   };
-  useEffect(fethSearch, [result]);
+  useEffect(() => {
+    fethSearch({ loadMore: false });
+  }, [keywordParams]);
 
   const loadMore = () => {
-    setResult({
-      ...result,
-      isLoadingMore: true,
-    });
+    setIsLoadingMore(true);
+    fethSearch({ loadMore: true });
   };
 
   return (
-    <div>
-      <nav className="headers-container flex justify-between px-5 items-center rounded-b-[40%] sticky bg-gradient-to-r from-purple-900 to-purple-500 min-h-[60px] shadow">
-        <img className="w-[24px] h-[24px]" src="/icons/menu.svg" alt="" />
-        <img onClick={()=>navigate('/')} className="" src="/images/ngmusic.png" alt="" />
-        <img onClick={()=>navigate('/')} className="w-[24px] h-[24px]" src="/icons/search.svg" alt="" />
-      </nav>
+    <>
+      <div>
+        <nav className="headers-container flex justify-between px-5 items-center rounded-b-[40%] sticky bg-gradient-to-r from-purple-900 to-purple-500 min-h-[60px] shadow">
+          <IconMenu />
+          <img
+            onClick={() => navigate("/")}
+            className=""
+            src="/images/ngmusic.png"
+            alt=""
+          />
+          <IconSearch onClick={() => setIsModalOpen(true)} />
+        </nav>
 
-      <div className="px-6 mt-6 gap-y-[20px] flex flex-col pb-6 items-center">
-        {!result.items.length || result.isLoading ? (
-          <div>Loading</div>
-        ) : (
-          result.items.map((item) => (
-            <div
-              key={item.trackId}
-              className="w-full gap-x-2 bg-white dark:bg-slate-800 rounded-lg px-6 py-8 ring-1 ring-slate-900/5 shadow flex   items-center"
-            >
-              <Player item={item} />
+        <div className="px-6 mt-6 gap-y-[20px] flex flex-col pb-6 items-center">
+          {!result.items.length || result.isLoading ? (
+            <div>Loading</div>
+          ) : (
+            result.items.map((item) => (
+              <div
+                key={item.trackId}
+                className="w-full gap-x-2 bg-white dark:bg-slate-800 rounded-lg px-6 py-8 ring-1 ring-slate-900/5 shadow flex   items-center"
+              >
+                <Player item={item} />
 
-              <div className="w-full">
-                <div>{item.artistName}</div>
-                <div className="mt-[5px]">{item.trackName}</div>
-                <div className="mt-[16px] bg-[#10b981] w-fit px-[13px] py-[5px] rounded-full text-white">
-                  {item.primaryGenreName}
+                <div className="w-full">
+                  <div>{item.artistName}</div>
+                  <div className="mt-[5px]">{item.trackName}</div>
+                  <div className="mt-[16px] bg-[#10b981] w-fit px-[13px] py-[5px] rounded-full text-white">
+                    {item.primaryGenreName}
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <img src="/icons/currency-dollar.png" alt="" />
+                  <span className="text-[#f5b014]">{item.trackPrice}</span>
                 </div>
               </div>
-              <div className="">{item.trackPrice}</div>
-            </div>
-          ))
-        )}
-        <button
-          className=" mt-[20px] px-6 py-[10px] rounded-17 bg-gray-300 border-none rounded-full w-fit"
-          onClick={loadMore}
-        >
-          Load More
-        </button>
+            ))
+          )}
+          <button
+            className=" mt-[20px] px-6 py-[10px] rounded-17 bg-gray-300 border-none rounded-full w-fit"
+            onClick={loadMore}
+            disabled={result.isLoading || isLoadingMore}
+          >
+            {isLoadingMore ? "Loading" : "Load More"}
+          </button>
+        </div>
       </div>
-    </div>
+      <ReactModal
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+        className="modalContainer "
+        overlayClassName="modalOverlayCenter"
+      >
+        <div className="modalOverlayCenterInside flex flex-col">
+          <div className="w-full p-4 flex justify-end">
+            <IconClose onClick={() => setIsModalOpen(false)} />
+          </div>
+          <form
+            onSubmit={handleSearch}
+            className="grow bottom-[26px] flex flex-col justify-center items-center w-full"
+          >
+            <input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Artist / Album / Title"
+              type="text"
+              className="mb-[15px] rounded-full border-none py-[13px] px-[12px] w-[80%] text-center"
+            />
+            <button
+              onClick={() => handleSearch}
+              className="mb-[15px rounded-full bg-white] border-none py-[13px] px-[12px] w-[80%] text-center bg-white bg-opacity-20 text-white"
+            >
+              Search
+            </button>
+          </form>
+        </div>
+      </ReactModal>
+    </>
   );
 };
 
