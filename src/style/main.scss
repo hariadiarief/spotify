@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-@import './base/mixins', './base/reset';
+@import "./base/mixins", "./base/reset";
 
 // COMPONENT
-@import './components/container', './components/layout', './components/darkMode';
+@import "./components/container", "./components/layout", "./components/darkMode";
 
 // PAGE
-@import './pages/home', './pages/about';
+@import "./pages/home", "./pages/about";
 
 // VENDOR
-@import './vendor/ReactModal'
+@import "./vendor/ReactModal";

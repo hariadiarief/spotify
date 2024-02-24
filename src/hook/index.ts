@@ -1,2 +1,2 @@
-export * from './useWindowDimention'
-export * from './usePrefersColorScheme'
+export * from "./useWindowDimention";
+export * from "./usePrefersColorScheme";

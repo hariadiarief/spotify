@@ -1,73 +1,14 @@
 import IconClose from "@/components/icons/IconClose";
-import IconPause from "@/components/icons/IconPause";
-import IconPlay from "@/components/icons/IconPlay";
+
 import IconSearch from "@/components/icons/IconSearch";
 import IconMenu from "@/components/icons/Menu";
 import { axiosInstance } from "@/services/api";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ReactModal from "react-modal";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-
-interface ITrackList {
-  isLoading: boolean;
-  isHasMore: string | null;
-  limit: number;
-  items: Itrack[];
-}
-
-interface Itrack {
-  artistName: string;
-  trackName: string;
-  trackPrice: number;
-  artworkUrl60: string;
-  trackId: number;
-  primaryGenreName: string;
-  previewUrl: string;
-}
-
-const Player = ({ item }: { item: Itrack }) => {
-  console.log({ item });
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState<number | null>(null);
-
-  const toggleAudio = (trackId: number) => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        setIsPlaying(null);
-        audioRef.current.pause();
-      } else {
-        setIsPlaying(trackId);
-        audioRef.current.play();
-      }
-    }
-  };
-
-  return (
-    <div onClick={() => toggleAudio(item.trackId)} className="relative">
-      <audio ref={audioRef} src={item.previewUrl} />
-      <img
-        className="rounded h-[100px] w-[100px]"
-        src={item.artworkUrl60}
-        alt=""
-      />
-      {isPlaying === item.trackId ? (
-        <IconPause
-          width={42}
-          height={42}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-white"
-        />
-      ) : (
-        <IconPlay
-          width={42}
-          height={42}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-white"
-        />
-      )}
-    </div>
-  );
-};
+import { ITrackList } from "./type";
+import Player from "./Player";
 
 const Results = () => {
   const navigate = useNavigate();
@@ -82,8 +23,10 @@ const Results = () => {
     event.preventDefault();
 
     if (!keyword) toast.error("Input Keyword");
-    else navigate(`/results?keyword=${encodeURIComponent(keyword)}`);
-
+    else {
+      navigate(`/results?keyword=${encodeURIComponent(keyword)}`);
+      setResult({ ...result, limit: 10, isLoading: true });
+    }
     setIsModalOpen(false);
   };
 
@@ -100,7 +43,7 @@ const Results = () => {
     if (keywordParams) {
       axiosInstance
         .get(
-          `/search?term=${encodeURIComponent(keywordParams)}&entity=song&limit=${loadMore ? result.limit + 10 : result.limit}`
+          `/search?term=${encodeURIComponent(keywordParams)}&entity=song&limit=${loadMore ? result.limit + 10 : result.limit}`,
         )
         .then((response) => {
           setResult({
@@ -108,6 +51,7 @@ const Results = () => {
             isLoading: false,
             items: response.data.results,
             limit: response.data.resultCount,
+            isHasMore: result.limit === response.data.resultCount,
           });
         })
         .catch((err) => {
@@ -134,14 +78,14 @@ const Results = () => {
             onClick={() => navigate("/")}
             className=""
             src="/images/ngmusic.png"
-            alt=""
+            alt="ngmusic"
           />
           <IconSearch onClick={() => setIsModalOpen(true)} />
         </nav>
 
         <div className="px-6 mt-6 gap-y-[20px] flex flex-col pb-6 items-center">
           {!result.items.length || result.isLoading ? (
-            <div>Loading</div>
+            <div>Loading...</div>
           ) : (
             result.items.map((item) => (
               <div
@@ -169,10 +113,11 @@ const Results = () => {
             onClick={loadMore}
             disabled={result.isLoading || isLoadingMore}
           >
-            {isLoadingMore ? "Loading" : "Load More"}
+            {isLoadingMore ? "Loading..." : "Load More"}
           </button>
         </div>
       </div>
+
       <ReactModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}

@@ -1,13 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
-      extend: {},
+    extend: {},
   },
   plugins: [],
   corePlugins: {
-      preflight: false, // <== disable this!
+    preflight: false, // <== disable this!
   },
-  darkMode: 'class',
-}
-
+  darkMode: "class",
+};
